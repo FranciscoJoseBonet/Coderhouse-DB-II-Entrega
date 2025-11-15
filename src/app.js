@@ -1,6 +1,10 @@
 import express from "express";
 import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
+import passport from "passport";
+import initializePassport from "./config/passport.config.js";
 import userRouter from "./routes/userRouter.js";
+import "dotenv/config.js";
 
 const app = express();
 
@@ -14,6 +18,11 @@ async function startServer() {
 		// Middlewares
 		app.use(express.json());
 		app.use(express.urlencoded({ extended: true }));
+		app.use(cookieParser());
+
+		//Inicializacion del passport
+		initializePassport();
+		app.use(passport.initialize());
 
 		// Rutas
 		app.use("/api/users", userRouter);
