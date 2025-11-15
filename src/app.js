@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import passport from "passport";
 import initializePassport from "./config/passport.config.js";
-import userRouter from "./routes/userRouter.js";
+import userRouter from "./routes/users.router.js";
 import "dotenv/config.js";
 
 const app = express();
