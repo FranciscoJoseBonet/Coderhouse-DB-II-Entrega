@@ -3,7 +3,12 @@ import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import passport from "passport";
 import initializePassport from "./config/passport.config.js";
+
+//Routers de la app
+import sessionsRouter from "./routes/sessions.router.js";
 import userRouter from "./routes/users.router.js";
+
+//Variables de entorno del sistema
 import "dotenv/config.js";
 
 const app = express();
@@ -25,6 +30,7 @@ async function startServer() {
 		app.use(passport.initialize());
 
 		// Rutas
+		app.use("/api/sessions", sessionsRouter);
 		app.use("/api/users", userRouter);
 
 		const PORT = 8080;
