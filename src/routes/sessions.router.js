@@ -72,10 +72,18 @@ router.get("/faillogin", (req, res) => {
 });
 
 router.get("/current", passport.authenticate("jwt", { session: false }), (req, res) => {
+	const userDTO = {
+		id: req.user._id,
+		first_name: req.user.first_name,
+		last_name: req.user.last_name,
+		email: req.user.email,
+		role: req.user.role,
+	};
+
 	res.status(200).send({
 		status: "success",
 		message: "Usuario actual",
-		payload: req.user,
+		payload: userDTO,
 	});
 });
 

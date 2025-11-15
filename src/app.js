@@ -11,10 +11,10 @@ import userRouter from "./routes/users.router.js";
 //Variables de entorno del sistema
 import "dotenv/config.js";
 
+const PORT = process.env.PORT || 8080;
 const app = express();
 
-const uri =
-	"mongodb+srv://francisco:contrasenia123@cluster0.kzbq1pi.mongodb.net/coderhouse-dbii";
+const uri = process.env.MONGO_URI || "mongodb://";
 
 async function startServer() {
 	try {
@@ -33,7 +33,6 @@ async function startServer() {
 		app.use("/api/sessions", sessionsRouter);
 		app.use("/api/users", userRouter);
 
-		const PORT = 8080;
 		app.listen(PORT, () => {
 			console.log(`Servidor iniciado en url: http://localhost:${PORT}`);
 		});

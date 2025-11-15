@@ -87,7 +87,7 @@ const initializePassport = () => {
 			},
 			async (jwt_payload, done) => {
 				try {
-					const user = await userModel.findById(jwt_payload._id);
+					const user = await userModel.findById(jwt_payload.id);
 
 					if (!user) {
 						return done(null, false, { message: "Usuario no encontrado" });
