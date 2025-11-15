@@ -1,0 +1,28 @@
+{
+	"name": "coderhouse-db-ii-entrega",
+	"type": "module",
+	"version": "1.0.0",
+	"description": "Project during my studies at Coderhouse for backend II course",
+	"main": "app.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "nodemon src/app.js",
+		"dev": "node --no-warnings ./node_modules/nodemon/bin/nodemon.js src/app.js"
+	},
+	"keywords": [],
+	"author": "Francisco Bonet",
+	"license": "ISC",
+	"dependencies": {
+		"bcrypt": "^6.0.0",
+		"body-parser": "^2.2.0",
+		"cookie-parser": "^1.4.7",
+		"dotenv": "^17.2.3",
+		"express": "^4.21.2",
+		"jsonwebtoken": "^9.0.2",
+		"mongoose": "^7.8.7",
+		"nodemon": "^3.1.11",
+		"passport": "^0.7.0",
+		"passport-jwt": "^4.0.1",
+		"passport-local": "^1.0.0"
+	}
+}
