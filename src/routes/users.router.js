@@ -1,12 +1,15 @@
 import { Router } from "express";
-import userModel from "../models/user.model.js";
+import passport from "passport";
+import { authorization } from "../middlewares/authorization.middleware.js";
+import UserService from "../services/user.service.js";
 
 const router = Router();
 
-// Consultar todos los usuarios
-router.get("/", async (req, res) => {
+const authenticate = passport.authenticate("jwt", { session: false });
+
+router.get("/", authenticate, authorization(["admin"]), async (req, res) => {
 	try {
-		const result = await userModel.find();
+		const result = await UserService.getAllUsers();
 		res.send({
 			status: "success",
 			payload: result,
@@ -19,11 +22,10 @@ router.get("/", async (req, res) => {
 	}
 });
 
-// Crear un usuario
-router.post("/", async (req, res) => {
-	const { name, age, email } = req.body;
+router.post("/", authenticate, authorization(["admin"]), async (req, res) => {
+	const userData = req.body;
 	try {
-		const result = await userModel.create({ name, age, email });
+		const result = await UserService.registerUser(userData);
 		res.send({
 			status: "success",
 			payload: result,
@@ -36,24 +38,14 @@ router.post("/", async (req, res) => {
 	}
 });
 
-// Actualizar un usuario
-router.put("/:uid", async (req, res) => {
+router.put("/:uid", authenticate, authorization(["admin"]), async (req, res) => {
 	const uid = req.params.uid;
-	const { name, age, email } = req.body;
+	const data = req.body;
 	try {
-		const user = await userModel.findOne({ _id: uid });
-		if (!user) throw new Error("User not found");
-
-		const newUser = {
-			name: name ?? user.name,
-			age: age ?? user.age,
-			email: email ?? user.email,
-		};
-
-		const updateUser = await userModel.updateOne({ _id: uid }, newUser);
+		const updatedUser = await UserService.updateUser(uid, data);
 		res.send({
 			status: "success",
-			payload: updateUser,
+			payload: updatedUser,
 		});
 	} catch (error) {
 		res.status(400).send({
@@ -63,11 +55,10 @@ router.put("/:uid", async (req, res) => {
 	}
 });
 
-// Eliminar un usuario
-router.delete("/:uid", async (req, res) => {
+router.delete("/:uid", authenticate, authorization(["admin"]), async (req, res) => {
 	const uid = req.params.uid;
 	try {
-		const result = await userModel.deleteOne({ _id: uid });
+		const result = await UserService.deleteUser(uid);
 		res.status(200).send({
 			status: "success",
 			payload: result,

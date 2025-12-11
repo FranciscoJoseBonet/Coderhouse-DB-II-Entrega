@@ -3,11 +3,13 @@ import mongoose from "mongoose";
 import cookieParser from "cookie-parser"; // 👈 Librería
 import passport from "passport";
 import initializePassport from "./config/passport.config.js";
+
 import "dotenv/config.js";
 
 //Routers de la app
 import sessionsRouter from "./routes/sessions.router.js";
 import userRouter from "./routes/users.router.js";
+import productsRouter from "./routes/products.router.js";
 
 const PORT = process.env.PORT || 8080;
 const app = express();
@@ -34,6 +36,7 @@ async function startServer() {
 
 		app.use("/api/sessions", sessionsRouter);
 		app.use("/api/users", userRouter);
+		app.use("/api/products", productsRouter);
 
 		app.listen(PORT, () => {
 			console.log(`Servidor iniciado en url: http://localhost:${PORT}`);
