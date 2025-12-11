@@ -1,35 +1,37 @@
 import express from "express";
 import mongoose from "mongoose";
-import cookieParser from "cookie-parser";
+import cookieParser from "cookie-parser"; // 👈 Librería
 import passport from "passport";
 import initializePassport from "./config/passport.config.js";
+import "dotenv/config.js";
 
 //Routers de la app
 import sessionsRouter from "./routes/sessions.router.js";
 import userRouter from "./routes/users.router.js";
 
-//Variables de entorno del sistema
-import "dotenv/config.js";
-
 const PORT = process.env.PORT || 8080;
 const app = express();
 
-const uri = process.env.MONGO_URI || "mongodb://";
+const uri = process.env.MONGO_URI;
+const cookieSecret = process.env.COOKIE_SECRET;
 
 async function startServer() {
 	try {
 		await mongoose.connect(uri);
+		console.log("Conexión exitosa a Mongo Atlas");
 
 		// Middlewares
 		app.use(express.json());
 		app.use(express.urlencoded({ extended: true }));
-		app.use(cookieParser());
 
-		//Inicializacion del passport
+		if (!cookieSecret) {
+			console.error("COOKIE_SECRET no definida. Se requiere para seguridad.");
+		}
+		app.use(cookieParser(cookieSecret));
+
 		initializePassport();
 		app.use(passport.initialize());
 
-		// Rutas
 		app.use("/api/sessions", sessionsRouter);
 		app.use("/api/users", userRouter);
 
@@ -38,6 +40,7 @@ async function startServer() {
 		});
 	} catch (error) {
 		console.error("Error al conectar con MongoDB:", error);
+		process.exit(1);
 	}
 }
 

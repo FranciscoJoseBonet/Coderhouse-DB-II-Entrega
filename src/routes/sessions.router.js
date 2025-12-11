@@ -1,35 +1,43 @@
 import { Router } from "express";
 import passport from "passport";
 import jwt from "jsonwebtoken";
+import UserService from "../services/user.service.js";
 
 const router = Router();
 
-const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-key-coder";
+const JWT_SECRET = process.env.JWT_SECRET;
 
-//Usamos el middleware de Passport con la estrategia 'register'
 router.post(
 	"/register",
 	passport.authenticate("register", {
 		failureRedirect: "/api/sessions/failregister",
-		session: false, // session: false para que no inicie sesión automáticamente.
+		session: false,
 	}),
 	async (req, res) => {
-		res.status(201).send({
-			status: "success",
-			message: "Usuario registrado exitosamente",
-			payload: req.user._id,
-		});
+		try {
+			await UserService.registerUser(req.user);
+
+			res.status(201).send({
+				status: "success",
+				message: "Usuario registrado y carrito creado exitosamente.",
+				payload: { userId: req.user._id },
+			});
+		} catch (error) {
+			res.status(400).send({
+				status: "error",
+				message: error.message,
+			});
+		}
 	}
 );
 
 router.get("/failregister", (req, res) => {
 	res.status(400).send({
 		status: "error",
-		message: "Error al registrar el usuario",
+		message: "Error al registrar el usuario.",
 	});
 });
 
-//Ahora el endpoint del login
 router.post(
 	"/login",
 	passport.authenticate("login", {
@@ -37,29 +45,28 @@ router.post(
 		session: false,
 	}),
 	async (req, res) => {
-		//¡No guardar la contraseña hasheada en el token!
 		const user = req.user;
-		//A-Creamos el payload para el JWT con los datos requeridos
+
 		const payload = {
 			id: user._id,
-			first_name: user.first_name,
-			last_name: user.last_name,
 			email: user.email,
 			role: user.role,
 		};
-		//B-Firmamos el token
+
 		const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
-		//C-Lo mandamos en la cookie
+
 		res.cookie("coderCookie", token, {
-			httpOnly: true, //proteccion del clinete
-			secure: false,
-			maxAge: 3600000, //expiracion
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			maxAge: 3600000,
 		});
-		//D-Respuesta al cliente
+
+		const userDTO = await UserService.getUserCurrent(user);
+
 		res.status(200).send({
 			status: "success",
 			message: "Login exitoso",
-			payload: payload,
+			payload: userDTO,
 		});
 	}
 );
@@ -67,23 +74,68 @@ router.post(
 router.get("/faillogin", (req, res) => {
 	res.status(401).send({
 		status: "error",
-		message: "Error en el inicio de sesión",
+		message: "Fallo en la autenticación. Credenciales inválidas.",
 	});
 });
 
-router.get("/current", passport.authenticate("jwt", { session: false }), (req, res) => {
-	const userDTO = {
-		id: req.user._id,
-		first_name: req.user.first_name,
-		last_name: req.user.last_name,
-		email: req.user.email,
-		role: req.user.role,
-	};
+router.get(
+	"/current",
+	passport.authenticate("jwt", { session: false }),
+	async (req, res) => {
+		const userDTO = await UserService.getUserCurrent(req.user);
 
+		res.status(200).send({
+			status: "success",
+			message: "Información de sesión actual obtenida de forma segura.",
+			payload: userDTO,
+		});
+	}
+);
+
+router.post("/forgotpassword", async (req, res) => {
+	const { email } = req.body;
+	try {
+		await UserService.sendRecoveryEmail(email);
+		res.status(200).send({
+			status: "success",
+			message: "Si el email existe, se ha enviado un enlace de recuperación.",
+		});
+	} catch (error) {
+		console.error("Error sending recovery email:", error);
+		res.status(500).send({
+			status: "error",
+			message: "Error al procesar la solicitud de recuperación. Intente más tarde.",
+		});
+	}
+});
+
+router.post("/resetpassword/:token", async (req, res) => {
+	const { token } = req.params;
+	const { newPassword } = req.body;
+
+	try {
+		await UserService.resetPassword(token, newPassword);
+		res.status(200).send({
+			status: "success",
+			message: "Contraseña restablecida correctamente.",
+		});
+	} catch (error) {
+		let status = 400;
+		if (error.message.includes("expirado")) {
+			status = 401;
+		}
+		res.status(status).send({
+			status: "error",
+			message: error.message,
+		});
+	}
+});
+
+router.get("/logout", (req, res) => {
+	res.clearCookie("coderCookie");
 	res.status(200).send({
 		status: "success",
-		message: "Usuario actual",
-		payload: userDTO,
+		message: "Sesión cerrada exitosamente.",
 	});
 });
 

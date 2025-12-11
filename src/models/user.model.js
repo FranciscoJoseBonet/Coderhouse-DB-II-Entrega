@@ -36,17 +36,6 @@ const userSchema = new mongoose.Schema({
 	},
 });
 
-// Middleware para 'populate'
-// Cada vez que se ejecute un 'find' o 'findOne',
-// se populará automáticamente el campo 'cart'.
-// Lo comentamos por ahora para no generar conflictos si aún no existe el modelo Cart
-// userSchema.pre('find', function() {
-//     this.populate('cart');
-// });
-// userSchema.pre('findOne', function() {
-//     this.populate('cart');
-// });
-
 const userModel = mongoose.model(userCollection, userSchema);
 
 export default userModel;
