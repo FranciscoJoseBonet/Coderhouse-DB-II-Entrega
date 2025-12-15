@@ -1,10 +1,7 @@
 /**
- * Middleware de Autorización basado en roles.
- * Debe ser usado DESPUÉS de un middleware de autenticación
- *
+ * Middleware de Autorización basado en roles
  * @param {string[]} roles
  */
-
 export const authorization = (roles) => {
 	return (req, res, next) => {
 		if (!req.user) {

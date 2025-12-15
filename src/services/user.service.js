@@ -53,9 +53,7 @@ class UserService {
 			expiresIn: "1h",
 		});
 
-		const recoveryLink = `http://${
-			process.env.HOST || "localhost:8080"
-		}/api/sessions/resetpassword/${token}`;
+		const recoveryLink = `http://${process.env.HOST}/api/sessions/resetpassword/${token}`;
 
 		const mailOptions = {
 			from: process.env.EMAIL_USER,
