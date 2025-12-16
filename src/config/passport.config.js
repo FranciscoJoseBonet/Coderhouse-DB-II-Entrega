@@ -4,7 +4,7 @@ import passportJwt from "passport-jwt";
 import userModel from "../models/user.model.js";
 import { createHash, isValidPassword } from "../utils/bcrypt.utils.js";
 
-/* Clave secreta para JWT (por recomendacion de seguridad lo ponemos en el .env :D )
+/* Clave secreta para JWT (En el .env :D )
  *  Pero para motivos de la correccion no saco la carpeta .env con .gitignore
  */
 const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-key-coder";
