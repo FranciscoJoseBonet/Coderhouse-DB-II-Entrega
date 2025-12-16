@@ -1,6 +1,7 @@
 import UserRepository from "../repositories/user.repository.js";
 import CartRepository from "../repositories/cart.repository.js";
 import UserDTO from "../dtos/user.dto.js";
+import { createHash } from "../utils/bcrypt.utils.js";
 
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
@@ -14,7 +15,6 @@ let transporter;
 const createMailTransporter = async () => {
 	if (transporter) return transporter;
 
-	// MODO TEST - Lo dejo asi para la entrega, pero en un entorno real se debería usar otro servicio de email para testing
 	if (process.env.NODE_ENV !== "production") {
 		const testAccount = await nodemailer.createTestAccount();
 
@@ -32,7 +32,6 @@ const createMailTransporter = async () => {
 		return transporter;
 	}
 
-	// MODO PRODUCCIÓN
 	transporter = nodemailer.createTransport({
 		service: "gmail",
 		auth: {
@@ -51,11 +50,19 @@ class UserService {
 			throw new Error("El usuario ya se encuentra registrado.");
 		}
 
-		const newCart = await cartRepository.createNewCart();
+		const role = userData.role || "user";
+		let cartId = null;
+
+		if (role !== "admin") {
+			const newCart = await cartRepository.createNewCart();
+			cartId = newCart._id;
+		}
 
 		const userToSave = {
 			...userData,
-			cart: newCart._id,
+			password: createHash(userData.password),
+			role: role,
+			cart: cartId,
 		};
 
 		const newUser = await userRepository.saveUser(userToSave);

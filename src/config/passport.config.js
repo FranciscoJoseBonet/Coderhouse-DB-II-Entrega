@@ -2,18 +2,15 @@ import passport from "passport";
 import passportLocal from "passport-local";
 import passportJwt from "passport-jwt";
 import userModel from "../models/user.model.js";
-import { createHash, isValidPassword } from "../utils/bcrypt.utils.js";
+import { isValidPassword } from "../utils/bcrypt.utils.js";
+import UserService from "../services/user.service.js";
 
-/* Clave secreta para JWT (En el .env :D )
- *  Pero para motivos de la correccion no saco la carpeta .env con .gitignore
- */
 const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-key-coder";
 
 const LocalStrategy = passportLocal.Strategy;
 const JwtStrategy = passportJwt.Strategy;
 const ExtractJwt = passportJwt.ExtractJwt;
 
-// Extraer token desde la cookie
 const cookieExtractor = (req) => {
 	let token = null;
 	if (req && req.cookies) {
@@ -23,7 +20,6 @@ const cookieExtractor = (req) => {
 };
 
 const initializePassport = () => {
-	//Para registrar y loguear los usrs
 	passport.use(
 		"register",
 		new LocalStrategy(
@@ -32,26 +28,21 @@ const initializePassport = () => {
 				usernameField: "email",
 			},
 			async (req, email, password, done) => {
-				const { first_name, last_name, age } = req.body;
+				const { first_name, last_name, age, role } = req.body;
 
 				try {
-					const user = await userModel.findOne({ email });
-					if (user) {
-						return done(null, false, { message: "El usuario ya existe" });
-					}
-
-					const newUser = {
+					const newUser = await UserService.registerUser({
 						first_name,
 						last_name,
 						email,
 						age,
-						password: createHash(password),
-					};
+						password,
+						role,
+					});
 
-					const result = await userModel.create(newUser);
-					return done(null, result);
+					return done(null, newUser);
 				} catch (error) {
-					return done("Error al registrar el usuario: " + error.message);
+					return done(null, false, { message: error.message });
 				}
 			}
 		)
@@ -77,7 +68,6 @@ const initializePassport = () => {
 		})
 	);
 
-	//para proteger las rutas con jwt
 	passport.use(
 		"jwt",
 		new JwtStrategy(
@@ -88,11 +78,9 @@ const initializePassport = () => {
 			async (jwt_payload, done) => {
 				try {
 					const user = await userModel.findById(jwt_payload.id);
-
 					if (!user) {
 						return done(null, false, { message: "Usuario no encontrado" });
 					}
-
 					return done(null, user);
 				} catch (error) {
 					return done(error);

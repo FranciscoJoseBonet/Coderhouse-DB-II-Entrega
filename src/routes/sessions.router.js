@@ -21,6 +21,7 @@ import { Router } from "express";
 import passport from "passport";
 import jwt from "jsonwebtoken";
 import UserService from "../services/user.service.js";
+import process from "process";
 
 const router = Router();
 
@@ -44,15 +45,13 @@ router.post(
 	}),
 	async (req, res) => {
 		try {
-			await UserService.registerUser(req.user);
-
 			res.status(201).send({
 				status: "success",
 				message: "Usuario registrado y carrito creado exitosamente.",
 				payload: { userId: req.user._id },
 			});
 		} catch (error) {
-			res.status(400).send({
+			res.status(500).send({
 				status: "error",
 				message: error.message,
 			});
@@ -107,7 +106,7 @@ router.post(
 		// Lo mandamos en la cookie
 		res.cookie("coderCookie", token, {
 			httpOnly: true,
-			secure: false,
+			secure: process.env.NODE_ENV === "production",
 			maxAge: 3600000,
 		});
 		// Respuesta al cliente
