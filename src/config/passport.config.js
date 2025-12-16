@@ -5,8 +5,6 @@ import userModel from "../models/user.model.js";
 import { isValidPassword } from "../utils/bcrypt.utils.js";
 import UserService from "../services/user.service.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-key-coder";
-
 const LocalStrategy = passportLocal.Strategy;
 const JwtStrategy = passportJwt.Strategy;
 const ExtractJwt = passportJwt.ExtractJwt;
@@ -73,7 +71,7 @@ const initializePassport = () => {
 		new JwtStrategy(
 			{
 				jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
-				secretOrKey: JWT_SECRET,
+				secretOrKey: process.env.JWT_SECRET,
 			},
 			async (jwt_payload, done) => {
 				try {

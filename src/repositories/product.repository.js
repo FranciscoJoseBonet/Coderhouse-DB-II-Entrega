@@ -15,6 +15,10 @@ class ProductRepository {
 		return this.dao.getById(id);
 	}
 
+	async getProductByCode(code) {
+		return this.dao.getByCode(code);
+	}
+
 	async saveProduct(product) {
 		return this.dao.create(product);
 	}

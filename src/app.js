@@ -1,6 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
-import cookieParser from "cookie-parser";
+import cookieParser from "cookie-parser"; // 👈 Importamos
 import passport from "passport";
 import initializePassport from "./config/passport.config.js";
 import cors from "cors";
@@ -48,6 +48,10 @@ async function startServer() {
 		}
 		app.use(cookieParser(cookieSecret));
 
+		initializePassport();
+		app.use(passport.initialize());
+
+		// Documentación
 		app.get("/api/docs", (req, res) => {
 			const routesPath = path.join(process.cwd(), "src/routes");
 
@@ -60,9 +64,6 @@ async function startServer() {
 
 			res.send(html);
 		});
-
-		initializePassport();
-		app.use(passport.initialize());
 
 		// Rutas
 		app.use("/api/sessions", sessionsRouter);

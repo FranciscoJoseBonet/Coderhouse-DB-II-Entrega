@@ -24,6 +24,10 @@ class ProductMongoDAO {
 		return ProductModel.findByIdAndDelete(pid).lean();
 	}
 
+	async getByCode(code) {
+		return ProductModel.findOne({ code: code }).lean();
+	}
+
 	async updateStock(pid, quantityToSubtract) {
 		return ProductModel.findByIdAndUpdate(
 			pid,
