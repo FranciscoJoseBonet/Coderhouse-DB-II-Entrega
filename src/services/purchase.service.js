@@ -1,7 +1,7 @@
 import TicketRepository from "../repositories/ticket.repository.js";
 import CartRepository from "../repositories/cart.repository.js";
 import ProductRepository from "../repositories/product.repository.js";
-import TicketDTO from "../dtos/TicketDTO.js";
+import TicketDTO from "../dtos/ticket.dto.js";
 
 const ticketRepository = new TicketRepository();
 const cartRepository = new CartRepository();

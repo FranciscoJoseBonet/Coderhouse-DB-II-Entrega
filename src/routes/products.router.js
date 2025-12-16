@@ -1,7 +1,7 @@
 import { Router } from "express";
 import passport from "passport";
 import { authorization } from "../middlewares/authorization.middleware.js";
-import ProductService from "../services/ProductService.js";
+import ProductService from "../services/product.service.js";
 
 const router = Router();
 const authenticate = passport.authenticate("jwt", { session: false });

@@ -4,10 +4,11 @@ import cookieParser from "cookie-parser";
 import passport from "passport";
 import initializePassport from "./config/passport.config.js";
 import cors from "cors";
+import path from "node:path";
+import { generateDocs } from "route-api-docs";
 
 import "dotenv/config.js";
 
-//Routers de la app
 import sessionsRouter from "./routes/sessions.router.js";
 import userRouter from "./routes/users.router.js";
 import productsRouter from "./routes/products.router.js";
@@ -39,7 +40,6 @@ async function startServer() {
 
 		// Middlewares
 		app.use(cors(corsOptions));
-
 		app.use(express.json());
 		app.use(express.urlencoded({ extended: true }));
 
@@ -47,6 +47,19 @@ async function startServer() {
 			console.error("COOKIE_SECRET no definida. Se requiere para seguridad.");
 		}
 		app.use(cookieParser(cookieSecret));
+
+		app.get("/api/docs", (req, res) => {
+			const routesPath = path.join(process.cwd(), "src/routes");
+
+			const html = generateDocs(routesPath, {
+				title: "API de E-Commerce (Proyecto Final DB II)",
+				version: "1.0.0",
+				theme: "dark",
+				baseUrl: process.env.HOST || `http://localhost:${PORT}/api`,
+			});
+
+			res.send(html);
+		});
 
 		initializePassport();
 		app.use(passport.initialize());
@@ -59,6 +72,7 @@ async function startServer() {
 
 		app.listen(PORT, () => {
 			console.log(`Servidor iniciado en url: http://localhost:${PORT}`);
+			console.log(`Documentación disponible en: http://localhost:${PORT}/api/docs`);
 		});
 	} catch (error) {
 		console.error("Error al conectar con MongoDB:", error);
