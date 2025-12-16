@@ -3,19 +3,46 @@ import CartRepository from "../repositories/cart.repository.js";
 import UserDTO from "../dtos/user.dto.js";
 
 import jwt from "jsonwebtoken";
-import { createTransport } from "nodemailer";
+import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
 
 const userRepository = new UserRepository();
 const cartRepository = new CartRepository();
 
-const transporter = createTransport({
-	service: "gmail",
-	auth: {
-		user: process.env.EMAIL_USER,
-		pass: process.env.EMAIL_PASS,
-	},
-});
+let transporter;
+
+const createMailTransporter = async () => {
+	if (transporter) return transporter;
+
+	// MODO TEST - Lo dejo asi para la entrega, pero en un entorno real se debería usar otro servicio de email para testing
+	if (process.env.NODE_ENV !== "production") {
+		const testAccount = await nodemailer.createTestAccount();
+
+		transporter = nodemailer.createTransport({
+			host: "smtp.ethereal.email",
+			port: 587,
+			secure: false,
+			auth: {
+				user: testAccount.user,
+				pass: testAccount.pass,
+			},
+		});
+
+		console.log("Ethereal Email user:", testAccount.user);
+		return transporter;
+	}
+
+	// MODO PRODUCCIÓN
+	transporter = nodemailer.createTransport({
+		service: "gmail",
+		auth: {
+			user: process.env.EMAIL_USER,
+			pass: process.env.EMAIL_PASS,
+		},
+	});
+
+	return transporter;
+};
 
 class UserService {
 	async registerUser(userData) {
@@ -62,7 +89,13 @@ class UserService {
 			html: `Haz click en el siguiente enlace para restablecer tu contraseña. Expira en 1 hora: <a href="${recoveryLink}">Restablecer Contraseña</a>`,
 		};
 
-		await transporter.sendMail(mailOptions);
+		const mailTransporter = await createMailTransporter();
+		const info = await mailTransporter.sendMail(mailOptions);
+
+		if (process.env.NODE_ENV !== "production") {
+			console.log("Preview URL:", nodemailer.getTestMessageUrl(info));
+		}
+
 		return "Correo de recuperación enviado con éxito.";
 	}
 
